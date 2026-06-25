@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PyG Dashboard · BSTORES</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
+
+  :root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --border: #E5E3DC;
+    --border-strong: #C8C5BC;
+    --navy: #1B2A3B;
+    --navy-mid: #2D4159;
+    --muted: #8A8880;
+    --text: #1A1917;
+    --red: #C0392B;
+    --green: #1A6B3C;
+    --accent: #D4A843;
+    --yellow-hl: #F5E642;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); font-size: 13px; min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: var(--navy); color: white; padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--accent); }
+  .header-brand { font-family: 'DM Serif Display', serif; font-size: 22px; letter-spacing: 0.02em; }
+  .header-brand span { color: var(--accent); }
+  .header-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .header-nav { font-size: 12px; color: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 8px; }
+  .header-nav a { color: rgba(255,255,255,0.5); text-decoration: none; }
+  .header-nav a:hover { color: var(--accent); }
+
+  /* TABS */
+  .tabs-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 32px; display: flex; align-items: center; }
+  .tab-btn { padding: 14px 20px; font-size: 13px; font-weight: 500; color: var(--muted); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em; margin-bottom: -1px; }
+  .tab-btn:hover { color: var(--navy); }
+  .tab-btn.active { color: var(--navy); border-bottom-color: var(--accent); font-weight: 600; }
+
+  /* CONTROLS */
+  .controls-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 32px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .control-group { display: flex; align-items: center; gap: 8px; }
+  .control-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .control-select { border: 1px solid var(--border-strong); border-radius: 6px; padding: 6px 28px 6px 10px; font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 500; color: var(--navy); background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%231B2A3B'/%3E%3C/svg%3E") no-repeat right 10px center; appearance: none; cursor: pointer; }
+  .period-label { font-size: 13px; font-weight: 600; color: var(--navy); }
+
+  /* KPI */
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 20px 32px; }
+  .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px 22px; }
+  .kpi-card .kpi-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .kpi-card .kpi-value { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--navy); line-height: 1; }
+  .kpi-card .kpi-value.negative { color: var(--red); }
+  .kpi-card .kpi-sublabel { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* TABLE */
+  .table-wrap { padding: 0 32px 32px; }
+  .table-container { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+
+  /* HEADER ROWS */
+  thead tr.thead-scenarios th { background: var(--navy); color: white; padding: 10px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; text-align: center; border-right: 1px solid rgba(255,255,255,0.1); }
+  thead tr.thead-scenarios th:first-child { text-align: left; border-right: 2px solid rgba(255,255,255,0.2); }
+  thead tr.thead-scenarios th.grp-a2026 { background: var(--navy); }
+  thead tr.thead-scenarios th.grp-b2026 { background: #4CAF50; color: white; }
+  thead tr.thead-scenarios th.grp-a2025 { background: #78909C; color: white; }
+
+  thead tr.thead-sublabels th { background: #1e3248; color: rgba(255,255,255,0.6); padding: 5px 14px 6px; font-size: 10px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; text-align: center; border-right: 1px solid rgba(255,255,255,0.08); }
+  thead tr.thead-sublabels th:first-child { text-align: left; border-right: 2px solid rgba(255,255,255,0.15); }
+  thead tr.thead-sublabels th.vs-sub { color: rgba(255,255,255,0.45); font-style: italic; }
+
+  /* BODY */
+  tbody tr { transition: background 0.08s; }
+  tbody tr:hover td { background: #F9F8F6 !important; }
+  tbody td { padding: 9px 14px; text-align: right; border-bottom: 1px solid var(--border); font-weight: 700; white-space: nowrap; border-right: 1px solid #F0EFE9; }
+  tbody td:first-child { text-align: left; border-right: 2px solid var(--border); }
+
+  /* % and vs columns: tighter padding */
+  tbody td:nth-child(3), tbody td:nth-child(5), tbody td:nth-child(6),
+  tbody td:nth-child(8), tbody td:nth-child(9) { padding-left: 4px; padding-right: 8px; }
+
+  /* vs columns – NO bold, color only */
+  tbody td.vs-col { font-weight: 400; font-size: 12px; }
+
+  /* Row types */
+  tr.row-header td { background: var(--navy) !important; color: white !important; font-weight: 700; font-size: 12px; padding: 11px 14px; }
+  tr.row-subtotal td { background: #EDEDEA !important; font-weight: 700; font-size: 12px; border-top: 2px solid var(--border-strong); border-bottom: 2px solid var(--border-strong); }
+  tr.row-ebitda td { background: var(--yellow-hl) !important; font-weight: 700; font-size: 13px; border-top: 2px solid #C8B800; border-bottom: 2px solid #C8B800; color: #1A1917 !important; }
+  tr.row-sub td:first-child { padding-left: 28px; color: var(--muted); font-size: 12px; font-weight: 400; }
+  tr.row-sub td { font-weight: 500; }
+  tr.row-pct td { color: var(--muted); font-size: 11px; font-weight: 400; background: #FAFAF8; border-bottom: 1px solid #EEEDE8; }
+  tr.row-pct td:first-child { padding-left: 28px; font-style: italic; }
+  tr.row-expense td:first-child { font-weight: 700; }
+  tr.row-spacer td { height: 6px; background: var(--bg) !important; border-bottom: none; }
+
+  /* OPEX DRILLDOWN */
+  tr.row-opex-toggle td:first-child { cursor: pointer; }
+  tr.row-opex-toggle td:first-child:hover { text-decoration: underline; text-underline-offset: 2px; }
+  .toggle-icon { display: inline-block; margin-right: 6px; font-size: 10px; transition: transform 0.2s; color: var(--accent); }
+  .toggle-icon.open { transform: rotate(90deg); }
+  tr.row-opex-sub { display: none; }
+  tr.row-opex-sub.visible { display: table-row; }
+  tr.row-opex-sub td { background: #FAFAF8 !important; }
+  tr.row-opex-sub td:first-child { padding-left: 36px; font-weight: 400; color: #5A5855; font-size: 12px; }
+  tr.row-opex-sub td { font-weight: 500; font-size: 12px; }
+  tr.row-opex-sub:hover td { background: #F3F2EF !important; }
+
+  /* Colors – only % and vs columns */
+  .vs-pos { color: var(--green) !important; }
+  .vs-neg { color: var(--red) !important; }
+  .vs-zero { color: var(--muted) !important; }
+  .pct-pos { color: var(--green) !important; }
+  .pct-neg { color: var(--red) !important; }
+  /* amount columns always black */
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  @media (max-width: 768px) {
+    .kpi-strip { grid-template-columns: repeat(2,1fr); padding: 16px; }
+    .table-wrap { padding: 0 12px 24px; }
+    .controls-bar, .tabs-bar, .header { padding-left: 16px; padding-right: 16px; }
+    .kpi-card .kpi-value { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div>
+    <div class="header-brand">BSTORES <span>·</span> P&amp;L Dashboard</div>
+    <div class="header-sub">Financial Performance · 2026</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+    <div class="header-nav"><a href="index.html">← Group Hub</a></div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.4);">Actualizado<br>Junio 2026</div>
+  </div>
+</header>
+
+<nav class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab('mtd',this)">MTD — Mensual</button>
+  <button class="tab-btn" onclick="switchTab('ytd',this)">YTD — Acumulado</button>
+</nav>
+
+<!-- MTD -->
+<div id="panel-mtd" class="tab-panel active">
+  <div class="controls-bar">
+    <div class="control-group">
+      <span class="control-label">Mes</span>
+      <select class="control-select" id="mtd-month-select" onchange="renderMTD()">
+        <option value="ENERO">Enero</option><option value="FEBRERO">Febrero</option>
+        <option value="MARZO">Marzo</option><option value="ABRIL">Abril</option>
+        <option value="MAYO" selected>Mayo</option><option value="JUNIO">Junio</option>
+        <option value="JULIO">Julio</option><option value="AGOSTO">Agosto</option>
+        <option value="SEPTIEMBRE">Septiembre</option><option value="OCTUBRE">Octubre</option>
+        <option value="NOVIEMBRE">Noviembre</option><option value="DICIEMBRE">Diciembre</option>
+      </select>
+    </div>
+    <div id="mtd-period-label" class="period-label"></div>
+  </div>
+  <div class="kpi-strip" id="mtd-kpis"></div>
+  <div class="table-wrap"><div class="table-container"><table id="mtd-table"></table></div></div>
+</div>
+
+<!-- YTD -->
+<div id="panel-ytd" class="tab-panel">
+  <div class="controls-bar">
+    <div class="control-group">
+      <span class="control-label">Acumulado hasta</span>
+      <select class="control-select" id="ytd-month-select" onchange="renderYTD()">
+        <option value="ENERO">Enero</option><option value="FEBRERO">Febrero</option>
+        <option value="MARZO">Marzo</option><option value="ABRIL">Abril</option>
+        <option value="MAYO" selected>Mayo</option><option value="JUNIO">Junio</option>
+        <option value="JULIO">Julio</option><option value="AGOSTO">Agosto</option>
+        <option value="SEPTIEMBRE">Septiembre</option><option value="OCTUBRE">Octubre</option>
+        <option value="NOVIEMBRE">Noviembre</option><option value="DICIEMBRE">Diciembre</option>
+      </select>
+    </div>
+    <div id="ytd-period-label" class="period-label"></div>
+  </div>
+  <div class="kpi-strip" id="ytd-kpis"></div>
+  <div class="table-wrap"><div class="table-container"><table id="ytd-table"></table></div></div>
+</div>
+
+<script>
+const MONTHS = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+const MONTH_ES = {ENERO:'Enero',FEBRERO:'Febrero',MARZO:'Marzo',ABRIL:'Abril',MAYO:'Mayo',JUNIO:'Junio',JULIO:'Julio',AGOSTO:'Agosto',SEPTIEMBRE:'Septiembre',OCTUBRE:'Octubre',NOVIEMBRE:'Noviembre',DICIEMBRE:'Diciembre'};
+
+const RAW = {
+  Revenue:        { A2026:{ENERO:536.63025,FEBRERO:524.5272,MARZO:503.57624,ABRIL:484.1141,MAYO:499.98642,JUNIO:-631.04091,JULIO:16.66667,AGOSTO:16.66667,SEPTIEMBRE:16.66667,OCTUBRE:16.66667,NOVIEMBRE:16.66667,DICIEMBRE:16.66667}, B2026:{ENERO:520.5916,FEBRERO:625.50086,MARZO:542.40478,ABRIL:575.63207,MAYO:582.99131,JUNIO:592.09844,JULIO:581.38324,AGOSTO:495.9975,SEPTIEMBRE:601.03499,OCTUBRE:601.44135,NOVIEMBRE:600.2911,DICIEMBRE:570.63279}, A2025:{ENERO:916.50294,FEBRERO:988.83953,MARZO:894.31044,ABRIL:785.11082,MAYO:881.05491,JUNIO:1184.97838,JULIO:782.46418,AGOSTO:588.38786,SEPTIEMBRE:1039.26318,OCTUBRE:914.98494,NOVIEMBRE:655.30572,DICIEMBRE:729.00358} },
+  Royalties:      { A2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, A2025:{ENERO:0.8,FEBRERO:0.8,MARZO:0.8,ABRIL:0.8,MAYO:0.8,JUNIO:0.8,JULIO:0.8,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0} },
+  Commercial_coop:{ A2026:{ENERO:441.66634,FEBRERO:464.03066,MARZO:445.83313,ABRIL:445.83322,MAYO:445.83322,JUNIO:-638.00218,JULIO:16.66667,AGOSTO:16.66667,SEPTIEMBRE:16.66667,OCTUBRE:16.66667,NOVIEMBRE:16.66667,DICIEMBRE:16.66667}, B2026:{ENERO:445.83333,FEBRERO:445.83333,MARZO:445.83333,ABRIL:445.83333,MAYO:445.83333,JUNIO:445.83333,JULIO:445.83333,AGOSTO:445.83333,SEPTIEMBRE:445.83333,OCTUBRE:445.83333,NOVIEMBRE:445.83333,DICIEMBRE:445.83333}, A2025:{ENERO:650.59803,FEBRERO:563.3536,MARZO:536.07687,ABRIL:489.2044,MAYO:528.19084,JUNIO:662.83904,JULIO:619.14953,AGOSTO:460.10432,SEPTIEMBRE:716.01927,OCTUBRE:664.3514,NOVIEMBRE:370.78892,DICIEMBRE:405.35692} },
+  Products:       { A2026:{ENERO:94.96391,FEBRERO:60.49654,MARZO:57.74311,ABRIL:38.28088,MAYO:54.1532,JUNIO:6.96127,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:74.75827,FEBRERO:179.66752,MARZO:96.57145,ABRIL:129.79874,MAYO:137.15797,JUNIO:146.26511,JULIO:135.54991,AGOSTO:50.16414,SEPTIEMBRE:155.20165,OCTUBRE:155.60802,NOVIEMBRE:154.45776,DICIEMBRE:124.79946}, A2025:{ENERO:265.10491,FEBRERO:424.68593,MARZO:357.43357,ABRIL:295.10642,MAYO:352.06407,JUNIO:521.33934,JULIO:162.51465,AGOSTO:128.28354,SEPTIEMBRE:323.24391,OCTUBRE:250.63354,NOVIEMBRE:284.5168,DICIEMBRE:323.64666} },
+  Services:       { A2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, A2025:{ENERO:0.8,FEBRERO:0.8,MARZO:0.8,ABRIL:0.8,MAYO:0.8,JUNIO:0.8,JULIO:0.8,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0} },
+  Other_revenue:  { A2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, A2025:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0} },
+  COGS:           { A2026:{ENERO:-66.76524,FEBRERO:-50.34024,MARZO:-56.31296,ABRIL:-30.70038,MAYO:-35.34932,JUNIO:28.74336,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:-52.14673,FEBRERO:-140.57112,MARZO:-67.36225,ABRIL:-90.53955,MAYO:-95.67289,JUNIO:-102.02546,JULIO:-94.55121,AGOSTO:-34.99139,SEPTIEMBRE:-108.25904,OCTUBRE:-108.5425,NOVIEMBRE:-107.74015,DICIEMBRE:-87.05236}, A2025:{ENERO:-180.67526,FEBRERO:-312.92958,MARZO:-264.85049,ABRIL:-248.72711,MAYO:-256.17828,JUNIO:-379.62033,JULIO:-126.86146,AGOSTO:-88.21651,SEPTIEMBRE:-238.94304,OCTUBRE:-177.62752,NOVIEMBRE:-216.6228,DICIEMBRE:-208.09936} },
+  Gross_Margin:   { A2026:{ENERO:469.86501,FEBRERO:474.18696,MARZO:447.26328,ABRIL:453.41372,MAYO:464.6371,JUNIO:-602.29755,JULIO:16.66667,AGOSTO:16.66667,SEPTIEMBRE:16.66667,OCTUBRE:16.66667,NOVIEMBRE:16.66667,DICIEMBRE:16.66667}, B2026:{ENERO:468.44487,FEBRERO:484.92973,MARZO:475.04253,ABRIL:485.09253,MAYO:487.31841,JUNIO:490.07298,JULIO:486.83204,AGOSTO:461.00608,SEPTIEMBRE:492.77594,OCTUBRE:492.89885,NOVIEMBRE:492.55094,DICIEMBRE:483.58043}, A2025:{ENERO:735.82768,FEBRERO:675.90995,MARZO:629.45995,ABRIL:536.38371,MAYO:624.87663,JUNIO:805.35805,JULIO:655.60272,AGOSTO:500.17135,SEPTIEMBRE:800.32014,OCTUBRE:737.35742,NOVIEMBRE:438.68292,DICIEMBRE:520.90422} },
+  Personnel:      { A2026:{ENERO:-56.28366,FEBRERO:-46.85259,MARZO:-44.00585,ABRIL:-42.1008,MAYO:-51.71605,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:-53.76984,FEBRERO:-55.29707,MARZO:-54.71159,ABRIL:-52.78376,MAYO:-51.24551,JUNIO:-53.6563,JULIO:-54.59512,AGOSTO:-21.96997,SEPTIEMBRE:-50.66998,OCTUBRE:-51.72551,NOVIEMBRE:-46.30288,DICIEMBRE:-119.25939}, A2025:{ENERO:-94.09758,FEBRERO:-100.57931,MARZO:-102.93579,ABRIL:-100.93024,MAYO:-99.80617,JUNIO:-105.05797,JULIO:-100.34961,AGOSTO:-65.09696,SEPTIEMBRE:-99.71117,OCTUBRE:-97.61531,NOVIEMBRE:-91.65215,DICIEMBRE:-96.69483} },
+  Leases:         { A2026:{ENERO:0,FEBRERO:0,MARZO:-3.56387,ABRIL:-1.58778,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:-3.58333,FEBRERO:-3.58333,MARZO:-3.58333,ABRIL:-3.58333,MAYO:-3.58333,JUNIO:-3.58333,JULIO:-3.58333,AGOSTO:-3.58333,SEPTIEMBRE:-3.58333,OCTUBRE:-3.58333,NOVIEMBRE:-3.58333,DICIEMBRE:-3.58333}, A2025:{ENERO:-3,FEBRERO:-0.71769,MARZO:-1.34802,ABRIL:-0.46155,MAYO:-1.62589,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:-0.14876,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0} },
+  Marketing:      { A2026:{ENERO:0,FEBRERO:0,MARZO:-16.43787,ABRIL:-22.44527,MAYO:-3.99747,JUNIO:-2.34827,JULIO:-2.34827,AGOSTO:-2.34827,SEPTIEMBRE:-2.34827,OCTUBRE:-2.34827,NOVIEMBRE:-2.34827,DICIEMBRE:0}, B2026:{ENERO:-4.14072,FEBRERO:-4.17635,MARZO:-3.93617,ABRIL:-4.1773,MAYO:-4.23071,JUNIO:-4.2968,JULIO:-4.21904,AGOSTO:-3.5994,SEPTIEMBRE:-4.36165,OCTUBRE:-4.1556,NOVIEMBRE:-4.25175,DICIEMBRE:-4.45452}, A2025:{ENERO:-3.88304,FEBRERO:-6.90304,MARZO:-4.04354,ABRIL:-21.23984,MAYO:-15.23306,JUNIO:-1.903,JULIO:-20.0882,AGOSTO:-7.6985,SEPTIEMBRE:-18.4455,OCTUBRE:-21.64899,NOVIEMBRE:-21.70913,DICIEMBRE:-21.64896} },
+  Opex:           { A2026:{ENERO:-2.30306,FEBRERO:-2.39766,MARZO:-5.10961,ABRIL:-3.34345,MAYO:-0.39394,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:-2.30075,FEBRERO:-3.45475,MARZO:-2.54069,ABRIL:-2.90619,MAYO:-2.98715,JUNIO:-3.08732,JULIO:-2.96946,AGOSTO:-1.48476,SEPTIEMBRE:-3.18563,OCTUBRE:-3.1901,NOVIEMBRE:-3.17744,DICIEMBRE:-2.8512}, A2025:{ENERO:-2.66023,FEBRERO:-5.49179,MARZO:-6.10999,ABRIL:-4.01966,MAYO:-4.78019,JUNIO:-4.18543,JULIO:-3.93141,AGOSTO:-0.59008,SEPTIEMBRE:-6.21692,OCTUBRE:-0.82405,NOVIEMBRE:-0.31576,DICIEMBRE:0} },
+  Taxes:          { A2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:-3.12078,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, A2025:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0} },
+  Royalties_exp:  { A2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, A2025:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0} },
+  EBITDA:         { A2026:{ENERO:411.27829,FEBRERO:424.93671,MARZO:378.14608,ABRIL:383.93642,MAYO:408.52964,JUNIO:-604.64582,JULIO:14.3184,AGOSTO:14.3184,SEPTIEMBRE:14.3184,OCTUBRE:14.3184,NOVIEMBRE:14.3184,DICIEMBRE:16.66667}, B2026:{ENERO:404.65023,FEBRERO:418.41823,MARZO:410.27074,ABRIL:421.64194,MAYO:425.27172,JUNIO:425.44922,JULIO:421.46509,AGOSTO:427.24784,SEPTIEMBRE:430.97536,OCTUBRE:430.24432,NOVIEMBRE:435.23554,DICIEMBRE:353.43199}, A2025:{ENERO:632.18683,FEBRERO:562.21812,MARZO:515.02261,ABRIL:409.73242,MAYO:503.43132,JUNIO:694.21165,JULIO:531.2335,AGOSTO:426.78581,SEPTIEMBRE:675.79779,OCTUBRE:617.26907,NOVIEMBRE:325.00588,DICIEMBRE:402.56043} }
+};
+
+const OPEX_SUBS = {
+  'Leases and royalties': { A2026:{ENERO:-0.57773,FEBRERO:-0.58308,MARZO:-0.59948,ABRIL:-0.59017,MAYO:-0.39394,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:-0.47462,FEBRERO:-0.47462,MARZO:-0.47462,ABRIL:-0.47462,MAYO:-0.47462,JUNIO:-0.47462,JULIO:-0.47462,AGOSTO:-0.47462,SEPTIEMBRE:-0.47462,OCTUBRE:-0.47462,NOVIEMBRE:-0.47462,DICIEMBRE:-0.47462}, A2025:{ENERO:-0.59008,FEBRERO:-0.59008,MARZO:-0.59008,ABRIL:0,MAYO:0,JUNIO:-0.59008,JULIO:-0.59008,AGOSTO:-0.59008,SEPTIEMBRE:-0.59008,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0} },
+  'Professional Services': { A2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, A2025:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0} },
+  'Transport':             { A2026:{ENERO:0,FEBRERO:0,MARZO:-2.0743,ABRIL:-0.8372,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:-0.82234,FEBRERO:-1.97634,MARZO:-1.06229,ABRIL:-1.42779,MAYO:-1.50874,JUNIO:-1.60892,JULIO:-1.49105,AGOSTO:-0.55181,SEPTIEMBRE:-1.70722,OCTUBRE:-1.71169,NOVIEMBRE:-1.69904,DICIEMBRE:-1.37279}, A2025:{ENERO:0,FEBRERO:-3.01078,MARZO:-2.63892,ABRIL:-1.37246,MAYO:-4.45065,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:-0.46255,OCTUBRE:-0.82405,NOVIEMBRE:0,DICIEMBRE:0} },
+  'Insurance':             { A2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, A2025:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0} },
+  'Banking and similar':   { A2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, A2025:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0} },
+  'Office Material':       { A2026:{ENERO:0,FEBRERO:0,MARZO:-0.38254,ABRIL:-0.31892,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, A2025:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0} },
+  'Other Services':        { A2026:{ENERO:-1.50473,FEBRERO:-1.77848,MARZO:-2.43583,ABRIL:-1.91608,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:-1.00379,FEBRERO:-1.00379,MARZO:-1.00379,ABRIL:-1.00379,MAYO:-1.00379,JUNIO:-1.00379,JULIO:-1.00379,AGOSTO:-0.45833,SEPTIEMBRE:-1.00379,OCTUBRE:-1.00379,NOVIEMBRE:-1.00379,DICIEMBRE:-1.00379}, A2025:{ENERO:-2.07015,FEBRERO:-1.89093,MARZO:-2.88099,ABRIL:-2.6472,MAYO:-0.24354,JUNIO:-3.59535,JULIO:-3.34133,AGOSTO:0,SEPTIEMBRE:-2.54638,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0} },
+  'Training':              { A2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, A2025:{ENERO:0,FEBRERO:0,MARZO:0,ABRIL:0,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0} },
+  'Travel':                { A2026:{ENERO:-1.50473,FEBRERO:-1.77848,MARZO:-1.89534,ABRIL:-1.59716,MAYO:0,JUNIO:0,JULIO:0,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0}, B2026:{ENERO:-1.00379,FEBRERO:-1.00379,MARZO:-1.00379,ABRIL:-1.00379,MAYO:-1.00379,JUNIO:-1.00379,JULIO:-1.00379,AGOSTO:-0.45833,SEPTIEMBRE:-1.00379,OCTUBRE:-1.00379,NOVIEMBRE:-1.00379,DICIEMBRE:-1.00379}, A2025:{ENERO:-2.07015,FEBRERO:-1.89093,MARZO:-2.88099,ABRIL:-2.6472,MAYO:-0.24354,JUNIO:-3.59535,JULIO:-3.34133,AGOSTO:0,SEPTIEMBRE:0,OCTUBRE:0,NOVIEMBRE:0,DICIEMBRE:0} }
+};
+
+// ── HELPERS ──
+function sumUpTo(concept, scenario, month, data) {
+  const idx = MONTHS.indexOf(month);
+  let t = 0;
+  for (let i = 0; i <= idx; i++) t += (data[concept][scenario][MONTHS[i]] || 0);
+  return t;
+}
+function getVal(concept, scenario, month, ytd, data) {
+  data = data || RAW;
+  if (ytd) return sumUpTo(concept, scenario, month, data);
+  return data[concept][scenario][month] || 0;
+}
+function fmt(v) {
+  if (Math.abs(v) < 0.0001) return '–';
+  const s = Math.abs(v).toFixed(1).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return v < 0 ? `(${s})` : s;
+}
+function fmtPct(v) {
+  if (Math.abs(v) < 0.00001) return '–';
+  return (v * 100).toFixed(1) + ' %';
+}
+function pct(v, base) { return base !== 0 ? v / base : 0; }
+function vsClass(v) {
+  if (Math.abs(v) < 0.0001) return 'vs-zero';
+  return v > 0 ? 'vs-pos' : 'vs-neg';
+}
+function pctClass(v) {
+  if (Math.abs(v) < 0.00001) return '';
+  return v < 0 ? 'pct-neg' : 'pct-pos';
+}
+
+// ── OPEX TOGGLE ──
+let opexOpen = false;
+function toggleOpex() {
+  opexOpen = !opexOpen;
+  document.querySelectorAll('.row-opex-sub').forEach(r => r.classList.toggle('visible', opexOpen));
+  const icon = document.querySelector('.toggle-icon');
+  if (icon) icon.classList.toggle('open', opexOpen);
+}
+
+// ── TABLE BUILD ──
+function buildTable(month, ytd) {
+  const g = (c) => getVal(c, 'A2026', month, ytd, RAW);
+  const b = (c) => getVal(c, 'B2026', month, ytd, RAW);
+  const p = (c) => getVal(c, 'A2025', month, ytd, RAW);
+  const rev = g('Revenue'), revB = b('Revenue'), revP = p('Revenue');
+
+  function row(type, label, a, bv, pv) {
+    const vsB = a - bv, vsP = a - pv;
+    const aPct = pct(a, rev), bPct = pct(bv, revB), pPct = pct(pv, revP);
+    let cls = '';
+    if (type==='header') cls='row-header';
+    else if (type==='subtotal') cls='row-subtotal';
+    else if (type==='ebitda') cls='row-ebitda';
+    else if (type==='sub') cls='row-sub';
+    else if (type==='expense') cls='row-expense';
+    else if (type==='opex') cls='row-expense row-opex-toggle';
+    const labelCell = type==='opex' ? `<span class="toggle-icon" id="opex-arrow">▶</span>${label}` : label;
+    return `<tr class="${cls}" ${type==='opex' ? 'onclick="toggleOpex()"' : ''}>
+      <td>${labelCell}</td>
+      <td>${fmt(a)}</td>
+      <td class="${pctClass(aPct)}" style="font-size:11px;font-weight:400">${fmtPct(aPct)}</td>
+      <td>${fmt(bv)}</td>
+      <td class="${pctClass(bPct)}" style="font-size:11px;font-weight:400">${fmtPct(bPct)}</td>
+      <td class="vs-col ${vsClass(vsB)}">${fmt(vsB)}</td>
+      <td>${fmt(pv)}</td>
+      <td class="${pctClass(pPct)}" style="font-size:11px;font-weight:400">${fmtPct(pPct)}</td>
+      <td class="vs-col ${vsClass(vsP)}">${fmt(vsP)}</td>
+    </tr>`;
+  }
+
+  function pctRow(label, a, bv, pv) {
+    const vsB = a - bv, vsP = a - pv;
+    return `<tr class="row-pct">
+      <td>${label}</td>
+      <td></td><td class="${pctClass(a)}">${fmtPct(a)}</td>
+      <td></td><td class="${pctClass(bv)}">${fmtPct(bv)}</td>
+      <td class="vs-col ${vsClass(vsB)}">${fmtPct(vsB)}</td>
+      <td></td><td class="${pctClass(pv)}">${fmtPct(pv)}</td>
+      <td class="vs-col ${vsClass(vsP)}">${fmtPct(vsP)}</td>
+    </tr>`;
+  }
+
+  function spacer() { return `<tr class="row-spacer"><td colspan="9"></td></tr>`; }
+
+  let opexSubRows = '';
+  for (const [name, data] of Object.entries(OPEX_SUBS)) {
+    const a = getVal(name, 'A2026', month, ytd, OPEX_SUBS);
+    const bv = getVal(name, 'B2026', month, ytd, OPEX_SUBS);
+    const pv = getVal(name, 'A2025', month, ytd, OPEX_SUBS);
+    const vsB = a - bv, vsP = a - pv;
+    const aPct = pct(a, rev), bPct = pct(bv, revB), pPct = pct(pv, revP);
+    opexSubRows += `<tr class="row-opex-sub ${opexOpen?'visible':''}">
+      <td>${name}</td>
+      <td>${fmt(a)}</td>
+      <td class="${pctClass(aPct)}" style="font-size:11px;font-weight:400">${fmtPct(aPct)}</td>
+      <td>${fmt(bv)}</td>
+      <td class="${pctClass(bPct)}" style="font-size:11px;font-weight:400">${fmtPct(bPct)}</td>
+      <td class="vs-col ${vsClass(vsB)}">${fmt(vsB)}</td>
+      <td>${fmt(pv)}</td>
+      <td class="${pctClass(pPct)}" style="font-size:11px;font-weight:400">${fmtPct(pPct)}</td>
+      <td class="vs-col ${vsClass(vsP)}">${fmt(vsP)}</td>
+    </tr>`;
+  }
+
+  return `
+  <thead>
+    <tr class="thead-scenarios">
+      <th rowspan="2" style="width:210px;vertical-align:middle">Concepto</th>
+      <th colspan="2" class="grp-a2026">A2026</th>
+      <th colspan="3" class="grp-b2026">B2026</th>
+      <th colspan="3" class="grp-a2025">A2025</th>
+    </tr>
+    <tr class="thead-sublabels">
+      <th style="width:90px">Importe</th><th style="width:64px">% Rev</th>
+      <th style="width:90px">Importe</th><th style="width:64px">% Rev</th><th class="vs-sub" style="width:80px">vs A2026</th>
+      <th style="width:90px">Importe</th><th style="width:64px">% Rev</th><th class="vs-sub" style="width:80px">vs A2026</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${row('header','Revenue',rev,revB,revP)}
+    ${row('sub','Royalties',g('Royalties'),b('Royalties'),p('Royalties'))}
+    ${row('sub','Commercial cooperation',g('Commercial_coop'),b('Commercial_coop'),p('Commercial_coop'))}
+    ${row('sub','Products',g('Products'),b('Products'),p('Products'))}
+    ${row('sub','Services',g('Services'),b('Services'),p('Services'))}
+    ${row('sub','Other revenue',g('Other_revenue'),b('Other_revenue'),p('Other_revenue'))}
+    ${spacer()}
+    ${row('expense','COGS',g('COGS'),b('COGS'),p('COGS'))}
+    ${pctRow('Product margin [%]', pct(g('COGS'),g('Products')), pct(b('COGS'),b('Products')), pct(p('COGS'),p('Products')))}
+    ${spacer()}
+    ${row('subtotal','Gross margin',g('Gross_Margin'),b('Gross_Margin'),p('Gross_Margin'))}
+    ${pctRow('% Revenue', pct(g('Gross_Margin'),rev), pct(b('Gross_Margin'),revB), pct(p('Gross_Margin'),revP))}
+    ${spacer()}
+    ${row('expense','Personnel [Staff]',g('Personnel'),b('Personnel'),p('Personnel'))}
+    ${pctRow('% Revenue', pct(g('Personnel'),rev), pct(b('Personnel'),revB), pct(p('Personnel'),revP))}
+    ${spacer()}
+    ${row('expense','Leases',g('Leases'),b('Leases'),p('Leases'))}
+    ${pctRow('% Revenue', pct(g('Leases'),rev), pct(b('Leases'),revB), pct(p('Leases'),revP))}
+    ${spacer()}
+    ${row('opex','Operational expenses',g('Opex'),b('Opex'),p('Opex'))}
+    ${opexSubRows}
+    ${pctRow('% Revenue', pct(g('Opex'),rev), pct(b('Opex'),revB), pct(p('Opex'),revP))}
+    ${spacer()}
+    ${row('expense','Marketing',g('Marketing'),b('Marketing'),p('Marketing'))}
+    ${pctRow('% Revenue', pct(g('Marketing'),rev), pct(b('Marketing'),revB), pct(p('Marketing'),revP))}
+    ${spacer()}
+    ${row('expense','Taxes',g('Taxes'),b('Taxes'),p('Taxes'))}
+    ${pctRow('% Revenue', pct(g('Taxes'),rev), pct(b('Taxes'),revB), pct(p('Taxes'),revP))}
+    ${spacer()}
+    ${row('expense','Royalties expense',g('Royalties_exp'),b('Royalties_exp'),p('Royalties_exp'))}
+    ${pctRow('% Revenue', pct(g('Royalties_exp'),rev), pct(b('Royalties_exp'),revB), pct(p('Royalties_exp'),revP))}
+    ${spacer()}
+    ${row('ebitda','EBITDA',g('EBITDA'),b('EBITDA'),p('EBITDA'))}
+    ${pctRow('% Revenue', pct(g('EBITDA'),rev), pct(b('EBITDA'),revB), pct(p('EBITDA'),revP))}
+  </tbody>`;
+}
+
+// ── KPIs ──
+function buildKPIs(month, ytd) {
+  const g = (c) => getVal(c, 'A2026', month, ytd, RAW);
+  const b = (c) => getVal(c, 'B2026', month, ytd, RAW);
+  const rev = g('Revenue'), gm = g('Gross_Margin'), ebitda = g('EBITDA');
+  const ebitdaPct = rev !== 0 ? ebitda / rev : 0;
+  const revB = b('Revenue'), ebitdaB = b('EBITDA');
+  const ebitdaPctB = revB !== 0 ? ebitdaB / revB : 0;
+  return `
+    <div class="kpi-card"><div class="kpi-label">Revenue</div><div class="kpi-value">${fmt(rev)}</div><div class="kpi-sublabel">K€ · ${ytd?'Acumulado':'Mensual'}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Gross Margin</div><div class="kpi-value ${gm<0?'negative':''}">${fmt(gm)}</div><div class="kpi-sublabel">${fmtPct(rev!==0?gm/rev:0)} sobre revenue</div></div>
+    <div class="kpi-card"><div class="kpi-label">EBITDA</div><div class="kpi-value ${ebitda<0?'negative':''}">${fmt(ebitda)}</div><div class="kpi-sublabel">${fmtPct(ebitdaPct)} sobre revenue</div></div>
+    <div class="kpi-card"><div class="kpi-label">EBITDA % Revenue</div><div class="kpi-value ${ebitdaPct<0?'negative':''}">${fmtPct(ebitdaPct)}</div><div class="kpi-sublabel">vs B2026: ${fmtPct(ebitdaPct - ebitdaPctB)}</div></div>`;
+}
+
+// ── RENDERS ──
+function renderMTD() {
+  const month = document.getElementById('mtd-month-select').value;
+  document.getElementById('mtd-period-label').textContent = `MTD — ${MONTH_ES[month]} 2026`;
+  document.getElementById('mtd-kpis').innerHTML = buildKPIs(month, false);
+  document.getElementById('mtd-table').innerHTML = buildTable(month, false);
+}
+function renderYTD() {
+  const month = document.getElementById('ytd-month-select').value;
+  document.getElementById('ytd-period-label').textContent = `YTD — Enero → ${MONTH_ES[month]} 2026`;
+  document.getElementById('ytd-kpis').innerHTML = buildKPIs(month, true);
+  document.getElementById('ytd-table').innerHTML = buildTable(month, true);
+}
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+renderMTD();
+renderYTD();
+</script>
+</body>
+</html>

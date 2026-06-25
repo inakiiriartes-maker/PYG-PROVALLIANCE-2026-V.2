@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial Hub · Group P&L</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
+
+  :root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --border: #E5E3DC;
+    --navy: #1B2A3B;
+    --navy-mid: #2D4159;
+    --muted: #8A8880;
+    --text: #1A1917;
+    --accent: #D4A843;
+    --accent-light: #F5E9C8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: 22px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid var(--accent);
+  }
+  .header-brand {
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px;
+    letter-spacing: 0.02em;
+  }
+  .header-brand span { color: var(--accent); }
+  .header-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    margin-top: 3px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .header-date {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    text-align: right;
+    line-height: 1.6;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 48px;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    color: var(--navy);
+    text-align: center;
+    margin-bottom: 8px;
+    line-height: 1.15;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 56px;
+  }
+
+  /* ── CARDS ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    width: 100%;
+    max-width: 860px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 28px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: box-shadow 0.18s, transform 0.18s, border-color 0.18s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.2s ease;
+  }
+  .card:hover {
+    box-shadow: 0 8px 32px rgba(27,42,59,0.10);
+    transform: translateY(-3px);
+    border-color: var(--accent);
+  }
+  .card:hover::before {
+    transform: scaleX(1);
+  }
+
+  .card-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--navy);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card-icon svg { width: 22px; height: 22px; stroke: var(--accent); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  .card-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: var(--navy);
+    letter-spacing: 0.01em;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  .card-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--navy);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .card-link svg { width: 14px; height: 14px; stroke: var(--accent); fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.15s; }
+  .card:hover .card-link svg { transform: translateX(3px); }
+
+  .card.coming-soon {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--accent-light);
+    color: var(--accent);
+    border-radius: 4px;
+    padding: 3px 8px;
+  }
+  .badge.live {
+    background: #E8F5EE;
+    color: #1A6B3C;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 18px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .footer-left {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .footer-right {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 768px) {
+    .header { padding: 18px 20px; }
+    .main { padding: 40px 20px; }
+    .cards { grid-template-columns: 1fr; max-width: 100%; }
+    .title { font-size: 26px; }
+    .footer { padding: 16px 20px; flex-direction: column; gap: 6px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div>
+    <div class="header-brand">Group <span>·</span> P&amp;L Hub</div>
+    <div class="header-sub">Financial Performance · 2026</div>
+  </div>
+  <div class="header-date">Actualizado<br>Junio 2026</div>
+</header>
+
+<main class="main">
+  <p class="eyebrow">Unidades de negocio</p>
+  <h1 class="title">Selecciona un dashboard</h1>
+  <p class="subtitle">Vista mensual y acumulada · Escenarios A2026, B2026 y A2025</p>
+
+  <div class="cards">
+
+    <!-- DIST -->
+    <a class="card" href="dashboard_dist.html">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+        </div>
+        <span class="badge live">Live</span>
+      </div>
+      <div class="card-name">DIST</div>
+      <div class="card-desc">Canal de distribución. Revenue, márgenes y EBITDA mensual y acumulado con comparativa vs presupuesto y año anterior.</div>
+      <div class="card-link">
+        Ver dashboard
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+    </a>
+
+    <!-- WHOLESALE -->
+    <a class="card coming-soon" href="dashboard_wholesale.html">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span class="badge">Próximamente</span>
+      </div>
+      <div class="card-name">Wholesale</div>
+      <div class="card-desc">Canal mayorista. Revenue, márgenes y EBITDA mensual y acumulado con comparativa vs presupuesto y año anterior.</div>
+      <div class="card-link">
+        Ver dashboard
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+    </a>
+
+    <!-- BSTORES -->
+    <a class="card" href="dashboard_bstores.html">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
+        </div>
+        <span class="badge live">Live</span>
+      </div>
+      <div class="card-name">BStores</div>
+      <div class="card-desc">Canal retail. Revenue, márgenes y EBITDA mensual y acumulado con comparativa vs presupuesto y año anterior.</div>
+      <div class="card-link">
+        Ver dashboard
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+    </a>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <span class="footer-left">Group P&amp;L Hub · Datos en K€</span>
+  <span class="footer-right">Actualizado junio 2026</span>
+</footer>
+
+</body>
+</html>
